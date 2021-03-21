@@ -1,0 +1,48 @@
+
+# Created by https://www.toptal.com/developers/gitignore/api/vim,phpunit,composer
+# Edit at https://www.toptal.com/developers/gitignore?templates=vim,phpunit,composer
+
+### Composer ###
+composer.phar
+/vendor/
+
+# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
+# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
+# composer.lock
+
+### PHPUnit ###
+# Covers PHPUnit
+# Reference: https://phpunit.de/
+
+# Generated files
+.phpunit.result.cache
+.phpunit.cache
+
+# PHPUnit
+/app/phpunit.xml
+
+# Build data
+/build/
+
+### Vim ###
+# Swap
+[._]*.s[a-v][a-z]
+!*.svg  # comment out if you don't need vector files
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+Sessionx.vim
+
+# Temporary
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
+# End of https://www.toptal.com/developers/gitignore/api/vim,phpunit,composer
