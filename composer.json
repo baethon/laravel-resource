@@ -1,6 +1,7 @@
 {
     "name": "baethon/laravel-resource",
-    "description": "Factory function for Laravel resources",
+    "description": "Conveniant factory for Laravel API resources",
+    "keywords": ["laravel", "resource", "resources", "api", "helper", "http"],
     "type": "library",
     "require": {
         "illuminate/support": "7.*|8.*",
