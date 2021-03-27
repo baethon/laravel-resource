@@ -9,6 +9,7 @@ use Baethon\Laravel\Resource\Resolver;
 use Baethon\Laravel\Resource\Strategies\StrategyInterface;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use PHPUnit\Framework\TestCase;
 
 class ResolverTest extends TestCase
@@ -83,5 +84,12 @@ class ResolverTest extends TestCase
         $resolver = new Resolver($firstStrategy);
 
         $this->assertEquals(AnonymousResourceCollection::class, $resolver->getCollectionName($model));
+    }
+
+    public function test_it_supports_missing_values()
+    {
+        $resolver = new Resolver();
+        $this->assertEquals(JsonResource::class, $resolver->getResourceName(new MissingValue));
+        $this->assertEquals(AnonymousResourceCollection::class, $resolver->getCollectionName(new MissingValue));
     }
 }
