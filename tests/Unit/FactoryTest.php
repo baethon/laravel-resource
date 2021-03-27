@@ -7,28 +7,14 @@ use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Baethon\Laravel\Resource\Factory;
 use Baethon\Laravel\Resource\Resolver;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\AbstractPaginator;
 use PHPUnit\Framework\TestCase;
 
 class FactoryTest extends TestCase
 {
-    public function test_it_creates_resource_for_single_model()
-    {
-        $resource = new Post();
-
-        $resolver = $this->createMock(Resolver::class);
-        $resolver->expects($this->once())
-            ->method('getResourceName')
-            ->with($resource)
-            ->willReturn(PostResource::class);
-
-        $factory = new Factory($resolver);
-
-        $this->assertEquals(new PostResource($resource), $factory->createResource($resource));
-    }
-
-    public function test_it_creates_custom_collection()
+    public function test_it_creates_a_resource()
     {
         $model = new Post();
 
@@ -38,35 +24,12 @@ class FactoryTest extends TestCase
             ->with($model)
             ->willReturn(PostResource::class);
 
-        $resolver->expects($this->once())
-            ->method('getCollectionName')
-            ->with(PostResource::class)
-            ->willReturn(PostCollection::class);
-
         $factory = new Factory($resolver);
-        $this->assertEquals(new PostCollection([$model]), $factory->createResource([$model]));
+
+        $this->assertEquals(new PostResource($model), $factory->createResource($model));
     }
 
-    public function test_it_creates_generic_collection()
-    {
-        $model = new Post();
-
-        $resolver = $this->createMock(Resolver::class);
-        $resolver->expects($this->once())
-            ->method('getResourceName')
-            ->with($model)
-            ->willReturn(PostResource::class);
-
-        $resolver->expects($this->once())
-            ->method('getCollectionName')
-            ->with(PostResource::class)
-            ->willReturn(null);
-
-        $factory = new Factory($resolver);
-        $this->assertEquals(PostResource::collection([$model]), $factory->createResource([$model]));
-    }
-
-    public function test_it_creates_generic_collection_for_generic_resource()
+    public function test_it_creates_default_resource()
     {
         $model = new Post();
 
@@ -76,38 +39,83 @@ class FactoryTest extends TestCase
             ->with($model)
             ->willReturn(JsonResource::class);
 
-        $resolver->expects($this->once())
-            ->method('getCollectionName')
-            ->with(JsonResource::class)
-            ->willReturn(null);
-
         $factory = new Factory($resolver);
-        $this->assertEquals(JsonResource::collection([$model]), $factory->createResource([$model]));
+
+        $this->assertEquals(new JsonResource($model), $factory->createResource($model));
     }
 
-    public function test_it_supports_paginators()
+    public function test_it_creates_collection_resource()
     {
-        $model = new Post();
+        $collection = collect([$model = new Post()]);
 
         $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
+            ->method('getCollectionName')
+            ->with($model)
+            ->willReturn(PostCollection::class);
+
+        $factory = new Factory($resolver);
+
+        $this->assertEquals(new PostCollection($collection), $factory->createResource($collection));
+    }
+
+    public function test_it_creates_anonymous_collection_resource()
+    {
+        $collection = collect([$model = new Post()]);
+
+        $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
+            ->method('getCollectionName')
+            ->with($model)
+            ->willReturn(AnonymousResourceCollection::class);
+
         $resolver->expects($this->once())
             ->method('getResourceName')
             ->with($model)
             ->willReturn(PostResource::class);
 
-        $resolver->expects($this->any())
+        $factory = new Factory($resolver);
+
+        $this->assertEquals(
+            new AnonymousResourceCollection($collection, PostResource::class),
+            $factory->createResource($collection)
+        );
+    }
+
+    public function test_it_supports_arrays()
+    {
+        $collection = [$model = new Post()];
+
+        $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
             ->method('getCollectionName')
-            ->with(PostResource::class)
+            ->with($model)
             ->willReturn(PostCollection::class);
 
-        $collection = new Paginator([$model], 10);
+        $factory = new Factory($resolver);
 
-        // The ResourceCollection instance will mutate
-        // received collection.
-        // It's important to pass the copy of it.
-        $expected = new PostCollection(clone $collection);
+        $this->assertEquals(new PostCollection($collection), $factory->createResource($collection));
+    }
+
+    public function test_it_supports_pagination()
+    {
+        $model = new Post();
+        $paginator = new class ($model) extends AbstractPaginator {
+            public function __construct($model)
+            {
+                $this->items = collect([$model]);
+            }
+        };
+
+        $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
+            ->method('getCollectionName')
+            ->with($model)
+            ->willReturn(PostCollection::class);
 
         $factory = new Factory($resolver);
-        $this->assertEquals($expected, $factory->createResource($collection));
+
+        // The original ResourceCollection will mutate paginator items
+        $this->assertEquals(new PostCollection(clone $paginator), $factory->createResource($paginator));
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Baethon\Laravel\Resource;
 
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Collection;
 
@@ -16,64 +16,53 @@ class Factory
         $this->resolver = $resolver;
     }
 
-    /**
-     * @param mixed $resource
-     * @return ResourceCollection|JsonResource
-     */
-    public function createResource($resource): JsonResource
+    public function createResource($modelOrCollection): JsonResource
     {
-        if ($this->isCollection($resource)) {
-            return $this->createCollection($resource);
-        }
-
-        $resourceClassName = $this->resolver->getResourceName($resource);
-
-        return new $resourceClassName($resource);
+        return $this->isCollection($modelOrCollection)
+            ? $this->createCollectionResource($modelOrCollection)
+            : $this->createSingleResource($modelOrCollection);
     }
 
-    private function createCollection($resource): ResourceCollection
+    private function createSingleResource($model): JsonResource
     {
-        $resourceName = $this->resolver->getResourceName(
-            $this->getFirstModel($resource)
-        );
-        $collectionName = $this->resolver->getCollectionName($resourceName);
-
-        return $collectionName
-            ? new $collectionName($resource)
-            : $resourceName::collection($resource);
+        $resource = $this->resolver->getResourceName($model);
+        return new $resource($model);
     }
 
-    private function getFirstModel($resource)
+    private function createCollectionResource($modelOrCollection): JsonResource
     {
-        if ($resource instanceof Collection) {
-            return $resource->first();
+        $model = $this->getFirstModel($modelOrCollection);
+        $collectionName = $this->resolver->getCollectionName($model);
+
+        if ($collectionName === AnonymousResourceCollection::class) {
+            $resourceName = $this->resolver->getResourceName($model);
+            return new AnonymousResourceCollection($modelOrCollection, $resourceName);
         }
 
-        if ($resource instanceof AbstractPaginator) {
-            return $resource->getCollection()->first();
-        }
-
-        if (is_array($resource)) {
-            return $resource[0];
-        }
-
-        throw new \InvalidArgumentException('Unsupported resource collection');
+        return new $collectionName($modelOrCollection);
     }
 
-    private function isCollection($resource): bool
+    private function isCollection($modelOrCollection): bool
     {
-        if ($resource instanceof Collection) {
-            return true;
+        return is_array($modelOrCollection)
+            || ($modelOrCollection instanceof Collection)
+            || ($modelOrCollection instanceof AbstractPaginator);
+    }
+
+    private function getFirstModel($modelOrCollection)
+    {
+        if (is_array($modelOrCollection)) {
+            return $modelOrCollection[0];
         }
 
-        if ($resource instanceof AbstractPaginator) {
-            return true;
+        if ($modelOrCollection instanceof Collection) {
+            return $modelOrCollection->first();
         }
 
-        if (is_array($resource)) {
-            return true;
+        if ($modelOrCollection instanceof AbstractPaginator) {
+            return $modelOrCollection->getCollection()->first();
         }
 
-        return false;
+        return $modelOrCollection;
     }
 }
