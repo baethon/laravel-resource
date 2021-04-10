@@ -65,8 +65,9 @@ This is the moment when `resource()` shines. You simply need to create the custo
 ## Customization
 
 There are two ways to customize the factory:
-custom map
-custom naming strategy
+1. custom map
+1. custom naming strategy
+
 To change any of them, you'll have to publish the config files:
 
 ```
