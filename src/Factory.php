@@ -4,6 +4,7 @@ namespace Baethon\Laravel\Resource;
 
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Support\Collection;
 
@@ -25,13 +26,14 @@ class Factory
 
     private function createSingleResource($model): JsonResource
     {
+        $model ??= new MissingValue;
         $resource = $this->resolver->getResourceName($model);
         return new $resource($model);
     }
 
     private function createCollectionResource($modelOrCollection): JsonResource
     {
-        $model = $this->getFirstModel($modelOrCollection);
+        $model = $this->getFirstModel($modelOrCollection) ?? new MissingValue;
         $collectionName = $this->resolver->getCollectionName($model);
 
         if ($collectionName === AnonymousResourceCollection::class) {
@@ -52,7 +54,7 @@ class Factory
     private function getFirstModel($modelOrCollection)
     {
         if (is_array($modelOrCollection)) {
-            return $modelOrCollection[0];
+            return $modelOrCollection[0] ?? null;
         }
 
         if ($modelOrCollection instanceof Collection) {

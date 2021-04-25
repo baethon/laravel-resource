@@ -9,6 +9,7 @@ use Baethon\Laravel\Resource\Factory;
 use Baethon\Laravel\Resource\Resolver;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Illuminate\Pagination\AbstractPaginator;
 use PHPUnit\Framework\TestCase;
 
@@ -117,5 +118,36 @@ class FactoryTest extends TestCase
 
         // The original ResourceCollection will mutate paginator items
         $this->assertEquals(new PostCollection(clone $paginator), $factory->createResource($paginator));
+    }
+
+    public function test_it_supports_emtpy_result()
+    {
+        $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
+            ->method('getResourceName')
+            ->with(new MissingValue)
+            ->willReturn(JsonResource::class);
+
+        $factory = new Factory($resolver);
+        $this->assertEquals(new JsonResource(new MissingValue), $factory->createResource(null));
+    }
+
+    public function test_it_supports_emtpy_results_list()
+    {
+        $resolver = $this->createMock(Resolver::class);
+        $resolver->expects($this->once())
+            ->method('getCollectionName')
+            ->with(new MissingValue)
+            ->willReturn(AnonymousResourceCollection::class);
+
+        $resolver->expects($this->once())
+            ->method('getResourceName')
+            ->with(new MissingValue)
+            ->willReturn(JsonResource::class);
+
+        $collection = [];
+
+        $factory = new Factory($resolver);
+        $this->assertEquals(new AnonymousResourceCollection($collection, JsonResource::class), $factory->createResource($collection));
     }
 }

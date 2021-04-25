@@ -7,6 +7,9 @@ use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\User;
 use Baethon\Laravel\Resource\ServiceProvider;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 use Orchestra\Testbench\TestCase;
 
 use function Baethon\Laravel\Resource\resource;
@@ -42,5 +45,15 @@ class PackageIntegrationTest extends TestCase
         $model = new User;
         $this->assertEquals(new PostResource($model), resource($model));
         $this->assertEquals(new PostCollection(collect([$model])), resource(collect([$model])));
+    }
+
+    public function test_it_supports_empty_model()
+    {
+        $this->assertEquals(new JsonResource(new MissingValue), resource(null));
+    }
+
+    public function test_it_supports_emtpy_collections()
+    {
+        $this->assertEquals(new AnonymousResourceCollection([], JsonResource::class), resource([]));
     }
 }
