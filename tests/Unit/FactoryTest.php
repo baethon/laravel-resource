@@ -129,7 +129,7 @@ class FactoryTest extends TestCase
             ->willReturn(JsonResource::class);
 
         $factory = new Factory($resolver);
-        $this->assertEquals(new JsonResource(new MissingValue), $factory->createResource(null));
+        $this->assertEquals(new JsonResource(null), $factory->createResource(null));
     }
 
     public function test_it_supports_emtpy_results_list()

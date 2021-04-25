@@ -26,8 +26,7 @@ class Factory
 
     private function createSingleResource($model): JsonResource
     {
-        $model ??= new MissingValue;
-        $resource = $this->resolver->getResourceName($model);
+        $resource = $this->resolver->getResourceName($model ?? new MissingValue);
         return new $resource($model);
     }
 

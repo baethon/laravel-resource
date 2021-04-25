@@ -49,7 +49,7 @@ class PackageIntegrationTest extends TestCase
 
     public function test_it_supports_empty_model()
     {
-        $this->assertEquals(new JsonResource(new MissingValue), resource(null));
+        $this->assertEquals(new JsonResource(null), resource(null));
     }
 
     public function test_it_supports_emtpy_collections()
